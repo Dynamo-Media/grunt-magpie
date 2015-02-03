@@ -8,6 +8,7 @@
 
 'use strict';
 
+
 module.exports = function(grunt) {
 
   // Project configuration.
@@ -28,22 +29,17 @@ module.exports = function(grunt) {
       tests: ['tmp']
     },
 
-    // Configuration to be run (and then tested).
+    concat: {
+      task_files_src_dest_format: {
+        src: ['test/fixtures/hello', 'test/fixtures/testing'],
+        dest: 'tmp/task_files_src_dest_format.txt'
+      }
+    },
+
     magpie: {
-      default_options: {
+      default: {
         options: {
-        },
-        files: {
-          'tmp/default_options': ['test/fixtures/testing', 'test/fixtures/123']
-        }
-      },
-      custom_options: {
-        options: {
-          separator: ': ',
-          punctuation: ' !!!'
-        },
-        files: {
-          'tmp/custom_options': ['test/fixtures/testing', 'test/fixtures/123']
+          tasks: ['concat:task_files_src_dest_format']
         }
       }
     },
@@ -51,23 +47,28 @@ module.exports = function(grunt) {
     // Unit tests.
     nodeunit: {
       tests: ['test/*_test.js']
-    }
+    },
 
+    watch: {
+      files: ['tasks/*.js', 'test/*.js', 'lib/*.js'],
+      tasks: ['test']
+    }
+  });
+
+  grunt.registerTask('mocks', function() {
+    require('./test/mocks').setup();
   });
 
   // Actually load this plugin's task(s).
   grunt.loadTasks('tasks');
 
   // These plugins provide necessary tasks.
+  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-nodeunit');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
-  // Whenever the "test" task is run, first clean the "tmp" dir, then run this
-  // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'magpie', 'nodeunit']);
-
-  // By default, lint and run all tests.
+  grunt.registerTask('test', ['clean', 'mocks', 'magpie', 'nodeunit']);
   grunt.registerTask('default', ['jshint', 'test']);
-
 };
