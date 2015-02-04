@@ -1,4 +1,4 @@
-# grunt-magpie
+# grunt-magpie [![Build Status](https://travis-ci.org/dynamo-media/grunt-magpie.svg?branch=master)](https://travis-ci.org/dynamo-media/grunt-magpie)
 
 > Version and save assets in a remote repository.
 
