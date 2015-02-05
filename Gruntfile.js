@@ -24,22 +24,25 @@ module.exports = function(grunt) {
       }
     },
 
-    // Before generating any new files, remove any previously-created files.
     clean: {
-      tests: ['tmp']
+      tests: ['tmp', 'versioned_files.json']
     },
 
     concat: {
-      task_files_src_dest_format: {
+      task_default_not_found_upload: {
         src: ['test/fixtures/hello', 'test/fixtures/testing'],
-        dest: 'tmp/task_files_src_dest_format.txt'
+        dest: 'tmp/task_default_not_found_upload.txt'
+      },
+      task_default_found_download: {
+        src: ['test/fixtures/hello', 'test/fixtures/download_me'],
+        dest: 'tmp/task_default_found_download.txt'
       }
     },
 
     magpie: {
       default: {
         options: {
-          tasks: ['concat:task_files_src_dest_format']
+          tasks: ['concat:task_default_not_found_upload', 'concat:task_default_found_download']
         }
       }
     },

@@ -26,10 +26,13 @@ In your project's Gruntfile, add a section named `magpie` to the data object pas
 grunt.initConfig({
   magpie: {
     options: {
-      // Task-specific options go here.
+      serverUrl: "http://my-magpie-server.com:8888",
+      versionedFilesMapPath: "my_versioned_files.json"
     },
-    your_target: {
-      // Target-specific file lists and/or options go here.
+    concat_all_the_things: {
+      options: {
+        tasks: ["concat:all_the_things"]
+      }
     },
   },
 });
@@ -37,53 +40,35 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.serverUrl
 Type: `String`
-Default value: `',  '`
+Default value: `http://127.0.0.1:8888`
 
-A string value that is used to do something with whatever.
+Location of the Magpie assets repository. **Must** have either `http` or `https` before the URL.
 
-#### options.punctuation
+### options.tasks
+Type: `Array`
+Default value: false
+
+An array of tasks to download destination files from the repository (if possible), version and upload to the repository. The tasks are run in the order they are given in.
+
+#### options.versionAfterBuild
+Type: `Boolean`
+Default value: `false`
+
+Version the destination files _after_ the tasks listed in the `options.tasks` array have completed. Use this for tasks like LESS complication (`grunt-contrib-less`) where the source files can include other files not listed explicitly in the task.
+
+#### options.versionedFilesMapPath
 Type: `String`
-Default value: `'.'`
+Default value: `versioned_files.json`
 
-A string value that is used to do something else with whatever else.
+Path to the file that will contain the mappings from the original destination paths to the versioned destination paths. This is used to avoid code updates for the new versioned asset path when they change.
 
-### Usage Examples
+#### options.versionedFilesMapTemplate
+Type: `String`
+Default value: `null`
 
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
+Path to an [Underscore.js compatible template](http://underscorejs.org/#template) file. The array variable `mappings` is passed into the data object for the template to use - it is an array of objects with the keys: `hash`, `originalPath` and `versionedPath`. This is used in combination with `options.versionedFilesMapPath`.
 
-```js
-grunt.initConfig({
-  magpie: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-});
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
-
-```js
-grunt.initConfig({
-  magpie: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
-    },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-});
-```
-
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
-
-## Release History
-_(Nothing yet)_
+### Magpie Repository
+TODO: Provide information on the compilation/setup of the repository

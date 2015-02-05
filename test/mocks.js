@@ -1,9 +1,11 @@
 /**
  * @module mocks
  */
+
+var _ = require('underscore');
 var when = require('when');
 var path = require('path');
-var mkdirp = require('mkdirp');
+var grunt = require('grunt');
 
 
 var mocks = {};
@@ -16,21 +18,40 @@ function _add(modulePath, functionName, fn) {
     moduleObj[functionName] = fn;
 }
 
-var _repositoryConfig = {};
+var _repositoryFiles = {
+    'task_default_found_download.12d05c6f.txt': 'hello\ndownloadmefromzeserver'
+};
 
 function _repositoryDownloadFile(filePath) {
     var fileName = path.basename(filePath);
-    if (_repositoryConfig[fileName] === undefined) {
+    if (_repositoryFiles[fileName] === undefined) {
         return when.promise(function(resolve, reject) {
             reject();
         });
     }
 
     return when.promise(function(resolve) {
-        resolve(_repositoryConfig[fileName]);
+        grunt.file.write(filePath, _repositoryFiles[fileName]);
+        resolve('ok');
     });
 }
 
-exports.setup = function() {
+var _repositoryFileUploads = [];
+
+function _repositoryUploadFile(file) {
+    grunt.log.writeln('Upload', file);
+    if (grunt.file.exists(file)) {
+        grunt.log.writeln('Found file!');
+        _repositoryFileUploads.push(path.basename(file));
+    }
+}
+
+exports.repositoryHasFileUpload = function(file) {
+    return (_.contains(_repositoryFileUploads, path.basename(file)));
+};
+
+var setup = exports.setup = function() {
+    _add('../lib/repository', 'hasUploadAccess', function() { return true; });
     _add('../lib/repository', 'downloadFile', _repositoryDownloadFile);
+    _add('../lib/repository', 'uploadFile', _repositoryUploadFile);
 };
