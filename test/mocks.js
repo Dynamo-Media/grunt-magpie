@@ -39,9 +39,7 @@ function _repositoryDownloadFile(filePath) {
 var _repositoryFileUploads = [];
 
 function _repositoryUploadFile(file) {
-    grunt.log.writeln('Upload', file);
     if (grunt.file.exists(file)) {
-        grunt.log.writeln('Found file!');
         _repositoryFileUploads.push(path.basename(file));
     }
 }
