@@ -100,7 +100,9 @@ module.exports = function(grunt) {
     when.all(promises).done(function(filesNotInRepository) {
       // Remove any `null` values from the array
       filesNotInRepository = _.reject(filesNotInRepository, _.isNull);
-      util.runProxyTask(task, config, filesNotInRepository);
+      if (filesNotInRepository.length > 0) {
+        util.runProxyTask(task, config, filesNotInRepository);
+      }
 
       // Upload any files which are *not* in the repository
       filesNotInRepository.forEach(function(f) {
