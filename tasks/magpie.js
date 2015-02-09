@@ -125,6 +125,7 @@ module.exports = function(grunt) {
       tasks: false
       // TODO: Add option for `grunt-spritesmith` compatibility (options.destCss)
       // TODO: Add option for skipping download from repository if file already exists on disk (allow force override)
+      // TODO: Add option for self-signed server certs
     });
 
     var tasks = util.expandTasksWithNoTarget(options.tasks);
