@@ -117,8 +117,6 @@ module.exports = function(grunt) {
    * Ooooohhh shiny things.
    */
   grunt.registerMultiTask('magpie', 'Version and save assets in a remote repository.', function() {
-    var done = this.async();
-
     var options = this.options({
       serverUrl: 'http://127.0.0.1:8888',
       versionAfterBuild: false,
@@ -131,18 +129,37 @@ module.exports = function(grunt) {
 
     var tasks = util.expandTasksWithNoTarget(options.tasks);
 
+    if (options.versionAfterBuild) {
+      var destFiles = _.map(tasks, function(task) {
+        var files = grunt.task.normalizeMultiTaskFiles(grunt.config(task.replace(':', '.')));
+        return _.map(files, function (f) { return f.dest; });
+      });
+      destFiles = _.flatten(destFiles);
+
+      grunt.task.run(tasks);
+
+      grunt.config.set('_magpie_post_version_assets', {
+        options: {
+          files: destFiles,
+          versionedFilesMapPath: options.versionedFilesMapPath,
+          versionedFilesMapTemplate: options.versionedFilesMapTemplate
+        }
+      });
+      grunt.task.run('_magpie_post_version_assets');
+
+      return true;
+    }
+
+    var done = this.async();
+
     // Asynchronous for loop pattern
     var processTask = function(task) {
-
-      // TODO: Handle `options.versionAfterBuild`
-
       processTaskFiles(task, options, function() {
         var nextTask = tasks.shift();
 
         if (nextTask !== undefined) {
           processTask(nextTask);
         } else {
-          // End of the line.
           if (util.hasVersionedFilesMapBeenUpdated() === true) {
             grunt.task.run('_magpie_save_versioned_assets_path');
           }
@@ -162,9 +179,15 @@ module.exports = function(grunt) {
   /**
    * Private task for versioning files *after* their associated grunt task has run.
    */
-  grunt.registerTask('_magpie_post_version_asset', 'Version assets', function() {
+  grunt.registerTask('_magpie_post_version_assets', 'Version assets', function() {
     var options = this.options({
       files: []
+      /**
+       * Copied over from `magpie` parent task
+       *
+       * versionedFilesMapPath: 'versioned_files.json'
+       * versionedFilesMapTemplate: null
+       */
     });
 
     if ( ! _.isArray(options.files) || options.files.length === 0) {
@@ -177,7 +200,16 @@ module.exports = function(grunt) {
       var versionedFile = util.addVersionToPath(file, hash);
       grunt.file.copy(file, versionedFile, {encoding: null});
       grunt.file.delete(file);
+      util.addVersionedFilesMap({
+        hash: hash,
+        originalPath: file,
+        versionedPath: versionedFile
+      }, options);
     });
+
+    if (util.hasVersionedFilesMapBeenUpdated() === true) {
+      grunt.task.run('_magpie_save_versioned_assets_path');
+    }
   });
 
   /**

@@ -19,7 +19,7 @@ function _add(modulePath, functionName, fn) {
 }
 
 var _repositoryFiles = {
-    'task_default_found_download.12d05c6f.txt': 'hello\ndownloadmefromzeserver'
+    'default_found_download.12d05c6f.txt': 'hello\ndownloadmefromzeserver'
 };
 
 function _repositoryDownloadFile(filePath) {

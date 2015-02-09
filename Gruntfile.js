@@ -25,24 +25,42 @@ module.exports = function(grunt) {
     },
 
     clean: {
-      tests: ['tmp', 'versioned_files.json']
+      tests: ['tmp', '*versioned_files.json']
     },
 
     concat: {
-      task_default_not_found_upload: {
+      default_not_found_upload: {
         src: ['test/fixtures/hello', 'test/fixtures/testing'],
-        dest: 'tmp/task_default_not_found_upload.txt'
+        dest: 'tmp/default_not_found_upload.txt'
       },
-      task_default_found_download: {
+      default_found_download: {
         src: ['test/fixtures/hello', 'test/fixtures/download_me'],
-        dest: 'tmp/task_default_found_download.txt'
+        dest: 'tmp/default_found_download.txt'
+      }
+    },
+
+    less: {
+      version_after_build: {
+        options: {
+          compress: true
+        },
+        files: {
+          'tmp/version_after_build.css': 'test/fixtures/version_after_build.less'
+        }
       }
     },
 
     magpie: {
       default: {
         options: {
-          tasks: ['concat:task_default_not_found_upload', 'concat:task_default_found_download']
+          tasks: ['concat:default_not_found_upload', 'concat:default_found_download']
+        }
+      },
+      version_after_build: {
+        options: {
+          versionedFilesMapPath: 'tmp/after_build_versioned_files.json',
+          versionAfterBuild: true,
+          tasks: ['less:version_after_build']
         }
       }
     },
@@ -67,6 +85,7 @@ module.exports = function(grunt) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-nodeunit');
