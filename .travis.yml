@@ -1,5 +1,12 @@
+node_js: 
+- "0.10"
+before_install: 
+- npm install -g grunt-cli
 language: node_js
-node_js:
-  - '0.10'
-before_install:
-  - npm install -g grunt-cli
+deploy: 
+  on: 
+    tags: true
+  provider: npm
+  email: hello@justnom.com
+  api_key: 
+    secure: h3L6c1VqBc1jEoczFParwQEANRlD7NGvPaVQ0/W/UpI8mbRGXwP/jrUPazNXM5P+8iDFzhGt6E2ua19P43Rq+XZRSCEX0DDnz52YXYiBBgd1j4WrkEw99NKcW3g6JrNOmQTzGvSyL+VpkUV+/Y4ZLRxWzXT/SCPWO5ZfVX9a9nw=
