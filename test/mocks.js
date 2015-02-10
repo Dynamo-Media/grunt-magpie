@@ -26,7 +26,9 @@ function _repositoryDownloadFile(filePath) {
     var fileName = path.basename(filePath);
     if (_repositoryFiles[fileName] === undefined) {
         return when.promise(function(resolve, reject) {
-            reject();
+            reject({
+                statusCode: 404
+            });
         });
     }
 
