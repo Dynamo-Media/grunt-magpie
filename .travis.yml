@@ -6,6 +6,7 @@ language: node_js
 deploy: 
   on: 
     tags: true
+    all_branches: true
   provider: npm
   email: hello@justnom.com
   api_key: 
