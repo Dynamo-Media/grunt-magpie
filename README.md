@@ -70,5 +70,11 @@ Default value: `null`
 
 Path to an [Underscore.js compatible template](http://underscorejs.org/#template) file. The array variable `mappings` is passed into the data object for the template to use - it is an array of objects with the keys: `hash`, `originalPath` and `versionedPath`. This is used in combination with `options.versionedFilesMapPath`.
 
+### options.skipExisting
+Type: `Boolean`
+Default value: `false`
+
+Don't download the file from the repository or run the associated task if the destination file exists.
+
 ### Magpie Repository
 TODO: Provide information on the compilation/setup of the repository

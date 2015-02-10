@@ -23,18 +23,30 @@ module.exports = function(grunt) {
    *
    * @param file
    * @param sourceFiles
+   * @param options
    * @return {Promise}
    */
   function downloadFile(file, sourceFiles, options) {
     return when.promise(function(resolve) {
+      // Don't download from the repository if the file already exists
+      if (options.skipExisting && grunt.file.exists(file)) {
+        resolve(null);
+        return;
+      }
+
       repository.downloadFile(file, options).done(
           function() {
             grunt.log.writeln('Downloaded "' + path.basename(file) + '" from repository');
             resolve(null);
           },
-          function(err) {
-            // TODO: Log a more verbose reply to a server error
-            grunt.log.writeln('File "' + path.basename(file) + '" not found in repository');
+          function(response) {
+            grunt.log.writeln('File "' + path.basename(file) + '" not downloaded from the repository.');
+            if (response.statusCode !== undefined) {
+              grunt.log.error('Status code from server: ' + response.statusCode);
+            } else {
+              grunt.log.error(response);
+            }
+
             resolve({
               src: sourceFiles,
               dest: file
@@ -122,9 +134,9 @@ module.exports = function(grunt) {
       versionAfterBuild: false,
       versionedFilesMapPath: 'versioned_files.json',
       versionedFilesMapTemplate: null,
-      tasks: false
+      tasks: false,
+      skipExisting: false
       // TODO: Add option for `grunt-spritesmith` compatibility (options.destCss)
-      // TODO: Add option for skipping download from repository if file already exists on disk (allow force override)
       // TODO: Add option for self-signed server certs
     });
 
