@@ -136,11 +136,15 @@ module.exports = function(grunt) {
       versionedFilesMapTemplate: null,
       tasks: false,
       skipExisting: false
-      // TODO: Add option for `grunt-spritesmith` compatibility (options.destCss)
       // TODO: Add option for self-signed server certs
     });
 
-    var tasks = util.expandTasksWithNoTarget(options.tasks);
+    if (! _.isArray(options.tasks)) {
+      grunt.fail.fatal('No `options.tasks` array specified!');
+      return false;
+    }
+
+    var tasks = util.expandTasksWithNoTarget(_.flatten(options.tasks));
 
     if (options.versionAfterBuild) {
       var destFiles = _.map(tasks, function(task) {
