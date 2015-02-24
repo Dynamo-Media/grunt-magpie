@@ -9,121 +9,11 @@
 'use strict';
 
 var _ = require('underscore');
-var when = require('when');
-var path = require('path');
 var util = require('../lib/util');
 var repository = require('../lib/repository');
 
 
 module.exports = function(grunt) {
-
-  /**
-   * Check the repository for a file and download if present.
-   *
-   * @param file
-   * @param sourceFiles
-   * @param options
-   * @return {Promise}
-   */
-  function downloadFile(file, sourceFiles, options) {
-    return when.promise(function(resolve) {
-      // Don't download from the repository if the file already exists
-      if (options.skipExisting && grunt.file.exists(file)) {
-        resolve(null);
-        return;
-      }
-
-      repository.downloadFile(file, options).done(
-          function() {
-            grunt.log.writeln('Downloaded "' + path.basename(file) + '" from repository');
-            resolve(null);
-          },
-          function(response) {
-            grunt.log.writeln('File "' + path.basename(file) + '" not downloaded from the repository.');
-            if (response.statusCode !== undefined) {
-              grunt.log.error('Status code from server: ' + response.statusCode);
-            } else {
-              grunt.log.error(response);
-            }
-
-            resolve({
-              src: sourceFiles,
-              dest: file
-            });
-          }
-      );
-    });
-  }
-
-  /**
-   * Process a task file mapping. Check its validity, hash the file and then
-   * try downloading it from a remote repository.
-   *
-   * @param task
-   * @param file
-   * @param options
-   * @return {Promise}
-   */
-  function processTaskFile(task, file, options) {
-    if (file.src.length === 0) {
-      return util.gruntFailFatal('Source files missing', task);
-    }
-
-    if (typeof file.dest !== 'string') {
-      return util.gruntFailFatal('Multiple destination files are not supported', task);
-    }
-
-    var hash = util.hashFiles(file.src);
-    var destVersionedPath = util.addVersionToPath(file.dest, hash);
-
-    util.addVersionedFilesMap({
-      hash: hash,
-      originalPath: file.dest,
-      versionedPath: destVersionedPath
-    }, options);
-
-    // Check in the remote repository and download the file
-    return downloadFile(destVersionedPath, file.src, options);
-  }
-
-  /**
-   * Process the task files.
-   *
-   * @param task
-   * @param options
-   * @param doneCallback - Callback for when processing has finished
-   */
-  function processTaskFiles(task, options, doneCallback) {
-    var taskConfigName = task.replace(':', '.');
-    var config = grunt.config(taskConfigName);
-    if ( ! config) {
-      return util.gruntFailFatal('Task not found', task);
-    }
-
-    var promises = [];
-
-    var files = grunt.task.normalizeMultiTaskFiles(config);
-    files.forEach(function (f) {
-      promises.push(processTaskFile(task, f, options));
-    });
-
-    // Wait for all the files to be either downloaded/saved *or* returned for processing
-    when.all(promises).done(function(filesNotInRepository) {
-      // Remove any `null` values from the array
-      filesNotInRepository = _.reject(filesNotInRepository, _.isNull);
-      if (filesNotInRepository.length > 0) {
-        util.runProxyTask(task, config, filesNotInRepository);
-      }
-
-      // Upload any files which are *not* in the repository
-      filesNotInRepository.forEach(function(f) {
-        repository.addFileToUploadQueue(f.dest, options);
-      });
-
-      doneCallback();
-    });
-  }
-
   /**
    * Ooooohhh shiny things.
    */
@@ -199,25 +89,23 @@ module.exports = function(grunt) {
 
       grunt.log.writeln('ignoredFiles', ignoredFiles);
 
-      // TODO: Calculate hashes for the `src` files in the `pipelines`
-
       // TODO: Check existence/attempt to download the `dest` files
+      var promises =
 
-      // TODO: Add filters to proxy tasks - ignore pipelined files IF exist
+      // TODO: Run all pipelined proxy tasks - only for files that were *not* downloaded
 
-      // TODO: Run all pipelined proxy tasks
-
-      // TODO: Version any files in the
+      // TODO: Save the versioned files map and upload assets
 
       done();
-      return false;
+
+      return true;
     }
 
     /**
      * Asynchronous for loop pattern for multiple tasks
      */
     var processTask = function(task) {
-      processTaskFiles(task, options, function() {
+      util.processTaskFiles(task, options, function() {
         var nextTask = tasks.shift();
 
         if (nextTask !== undefined) {
