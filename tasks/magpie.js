@@ -9,7 +9,6 @@
 'use strict';
 
 var _ = require('underscore');
-var fs = require('fs');
 var when = require('when');
 var path = require('path');
 var util = require('../lib/util');
@@ -135,20 +134,29 @@ module.exports = function(grunt) {
       versionedFilesMapPath: 'versioned_files.json',
       versionedFilesMapTemplate: null,
       tasks: false,
-      skipExisting: false
+      skipExisting: false,
+      pipeline: false
       // TODO: Add option for self-signed server certs
     });
 
     if (! _.isArray(options.tasks)) {
-      grunt.fail.fatal('No `options.tasks` array specified!');
+      grunt.fail.fatal('No `options.tasks` array specified');
       return false;
     }
 
     var tasks = util.expandTasksWithNoTarget(_.flatten(options.tasks));
 
+    /**
+     * Handle tasks which require their version to be added *after* they have been
+     * built
+     */
     if (options.versionAfterBuild) {
+      if (options.pipeline) {
+        grunt.fail.fatal('The `versionAfterBuild` setting is *not* compatible with the *pipeline* setting');
+      }
+
       var destFiles = _.map(tasks, function(task) {
-        var files = grunt.task.normalizeMultiTaskFiles(grunt.config(task.replace(':', '.')));
+        var files = util.gruntGetFiles(task);
         return _.map(files, function (f) { return f.dest; });
       });
       destFiles = _.flatten(destFiles);
@@ -169,7 +177,45 @@ module.exports = function(grunt) {
 
     var done = this.async();
 
-    // Asynchronous for loop pattern
+    /**
+     * Handle pipeline tasks
+     */
+    if (options.pipeline) {
+      if (tasks.length === 1) {
+        grunt.fail.fatal('Cannot have a pipeline of one task');
+      }
+
+      var tasksByParent = util.groupTasks(tasks);
+
+      if (tasksByParent._order.length === 1) {
+        grunt.fail.fatal('Cannot have a pipeline with only one parent');
+      }
+
+      var pipelines = util.extractPipelines(tasksByParent);
+
+      grunt.log.writeln('pipelines', pipelines);
+
+      var ignoredFiles = util.collectPipelineIgnoredFilesByTask(pipelines);
+
+      grunt.log.writeln('ignoredFiles', ignoredFiles);
+
+      // TODO: Calculate hashes for the `src` files in the `pipelines`
+
+      // TODO: Check existence/attempt to download the `dest` files
+
+      // TODO: Add filters to proxy tasks - ignore pipelined files IF exist
+
+      // TODO: Run all pipelined proxy tasks
+
+      // TODO: Version any files in the
+
+      done();
+      return false;
+    }
+
+    /**
+     * Asynchronous for loop pattern for multiple tasks
+     */
     var processTask = function(task) {
       processTaskFiles(task, options, function() {
         var nextTask = tasks.shift();
@@ -242,7 +288,7 @@ module.exports = function(grunt) {
   grunt.registerTask('_magpie_upload_assets', 'Upload versioned assets to the remote server', function() {
     var done = this.async();
     repository.uploadQueuedFiles().done(function(promises) {
-      grunt.log.ok('Uploaded ' + promises.length + ' files to repository!');
+      grunt.log.ok('Uploaded ' + promises.length + ' files to repository');
       done();
     }, function(error) {
       grunt.fail.warn('Upload failed: "' + error + '"');

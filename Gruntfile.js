@@ -36,6 +36,17 @@ module.exports = function(grunt) {
       default_found_download: {
         src: ['test/fixtures/hello', 'test/fixtures/download_me'],
         dest: 'tmp/default_found_download.txt'
+      },
+      pipeline: {
+        src: ['test/fixtures/pipeline_a.js', 'test/fixtures/pipeline_b.js'],
+        dest: 'tmp/pipeline_a_b.js'
+      }
+    },
+
+    uglify: {
+      pipeline: {
+        src: ['tmp/pipeline_a_b.js'],
+        dest: 'tmp/pipeline_a_b_uglify.js'
       }
     },
 
@@ -62,6 +73,13 @@ module.exports = function(grunt) {
           versionAfterBuild: true,
           tasks: ['less:version_after_build']
         }
+      },
+      pipeline: {
+        options: {
+          versionedFilesMapPath: 'tmp/pipeline_versioned_files.json',
+          pipeline: true,
+          tasks: ['concat:pipeline', 'uglify:pipeline']
+        }
       }
     },
 
@@ -85,6 +103,7 @@ module.exports = function(grunt) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');

@@ -56,5 +56,14 @@ exports.magpie = {
     test.equal(grunt.file.read('tmp/after_build_versioned_files.json'), grunt.file.read('test/expected/after_build_versioned_files.json'), 'should contain JSON of versioned files.');
 
     test.done();
+  },
+
+  pipeline: function(test) {
+    test.expect(2);
+
+    test.ok( ! grunt.file.exists('tmp/pipeline_a_b_uglify.js'), 'should not create a non-versioned file.');
+    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.HASH.js'), 'should create a versioned file');
+
+    test.done();
   }
 };
