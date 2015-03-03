@@ -76,5 +76,11 @@ Default value: `false`
 
 Don't download the file from the repository or run the associated task if the destination file exists.
 
+### options.pipeline
+Type: `Boolean`
+Default value: `false`
+
+Treat the tasks array as a pipeline of tasks. A pipeline is defined as a series of tasks which need to run in their defined order to produce a single output file. An example of a pipeline would be many JavaScript files joined together using the `concat` task, then the output of that task "uglified" with the `uglify` task.
+
 ### Magpie Repository
 TODO: Provide information on the compilation/setup of the repository
