@@ -99,7 +99,9 @@ module.exports = function(grunt) {
 
         // Iterate over each pipeline and reduce files for each task
         var configs = _.reduce(flattenedPipelines, function(configs, c) {
-          if (configs[c.task] === undefined) configs[c.task] = { files: [] };
+          if (configs[c.task] === undefined) {
+            configs[c.task] = { files: [] };
+          }
 
           // Create task files and override dest for versioned files
           var f = { src: c.src, dest: c.destVersioned || c.dest };
@@ -120,7 +122,9 @@ module.exports = function(grunt) {
 
         // Run the reduced configs respecting the order of the pipeline
         tasks.forEach(function(task) {
-          if (configs[task] === undefined) return;
+          if (configs[task] === undefined) {
+            return;
+          }
           util.runProxyTask(task, grunt.config(task.replace(':', '.')), configs[task].files);
         });
 

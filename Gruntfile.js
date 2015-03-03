@@ -17,6 +17,8 @@ module.exports = function(grunt) {
       all: [
         'Gruntfile.js',
         'tasks/*.js',
+        'lib/*.js',
+        'test/mocks.js',
         '<%= nodeunit.tests %>'
       ],
       options: {
@@ -110,6 +112,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-nodeunit');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('test', ['clean', 'mocks', 'magpie', 'nodeunit']);
-  grunt.registerTask('default', ['jshint', 'test']);
+  grunt.registerTask('test', ['jshint', 'clean', 'mocks', 'magpie', 'nodeunit']);
+  grunt.registerTask('default', ['test']);
 };
