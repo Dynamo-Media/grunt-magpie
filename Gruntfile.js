@@ -42,6 +42,10 @@ module.exports = function(grunt) {
       pipeline: {
         src: ['test/fixtures/pipeline_a.js', 'test/fixtures/pipeline_b.js'],
         dest: 'tmp/pipeline_a_b.js'
+      },
+      pipeline_download: {
+        src: ['test/fixtures/pipeline_a.js', 'test/fixtures/pipeline_c.js'],
+        dest: 'tmp/pipeline_a_c.js'
       }
     },
 
@@ -49,6 +53,10 @@ module.exports = function(grunt) {
       pipeline: {
         src: ['tmp/pipeline_a_b.js'],
         dest: 'tmp/pipeline_a_b_uglify.js'
+      },
+      pipeline_download: {
+        src: ['tmp/pipeline_a_c.js'],
+        dest: 'tmp/pipeline_a_c_uglify.js'
       }
     },
 
@@ -81,6 +89,13 @@ module.exports = function(grunt) {
           versionedFilesMapPath: 'tmp/pipeline_versioned_files.json',
           pipeline: true,
           tasks: ['concat:pipeline', 'uglify:pipeline']
+        }
+      },
+      pipeline_download: {
+        options: {
+          versionedFilesMapPath: 'tmp/pipeline_downloaded_versioned_files.json',
+          pipeline: true,
+          tasks: ['concat:pipeline_download', 'uglify:pipeline_download']
         }
       }
     },

@@ -19,7 +19,8 @@ function _add(modulePath, functionName, fn) {
 }
 
 var _repositoryFiles = {
-    'default_found_download.12d05c6f.txt': 'hello\ndownloadmefromzeserver'
+    'default_found_download.12d05c6f.txt': 'hello\ndownloadmefromzeserver',
+    'pipeline_a_c_uglify.3bafa719.js': 'DOWNLOADEDWOOP'
 };
 
 function _repositoryDownloadFile(filePath) {

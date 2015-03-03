@@ -66,7 +66,20 @@ module.exports = function(grunt) {
       return true;
     }
 
-    var done = this.async();
+    var asyncDone = this.async();
+    var done = function() {
+      // Create a versioned files map file
+      if (util.hasVersionedFilesMapBeenUpdated() === true) {
+        grunt.task.run('_magpie_save_versioned_assets_path');
+      }
+
+      // Upload any assets which were not downloaded
+      if (repository.hasUploadAccess()) {
+        grunt.task.run('_magpie_upload_assets');
+      }
+
+      asyncDone();
+    };
 
     /**
      * Handle pipeline tasks
@@ -82,7 +95,7 @@ module.exports = function(grunt) {
         grunt.fail.fatal('Cannot have a pipeline with only one parent');
       }
 
-      var pipelines = util.extractPipelines(tasksByParent);
+      var pipelines = util.extractPipelines(tasksByParent, options);
 
       // Check existence/attempt to download the `dest` files
       var promises = _.map(pipelines, function(pipeline) {
@@ -93,12 +106,10 @@ module.exports = function(grunt) {
       // Wait for all of the download tasks to finish up
       when.settle(promises).then(function(descriptors) {
         var filesNotInRepository = util.getRejectedReasonFromDescriptors(descriptors);
-
-        // Run all pipelined proxy tasks - only for files that were *not* downloaded
-        var flattenedPipelines = _.flatten(_.pluck(filesNotInRepository, 'context'));
+        filesNotInRepository = _.flatten(_.pluck(filesNotInRepository, 'context'));
 
         // Iterate over each pipeline and reduce files for each task
-        var configs = _.reduce(flattenedPipelines, function(configs, c) {
+        var configs = _.reduce(filesNotInRepository, function(configs, c) {
           if (configs[c.task] === undefined) {
             configs[c.task] = { files: [] };
           }
@@ -106,31 +117,22 @@ module.exports = function(grunt) {
           // Create task files and override dest for versioned files
           var f = { src: c.src, dest: c.destVersioned || c.dest };
 
-          // Check if the task is the last one in a pipeline and add its dest
-          // file to the versioned files
+          // Check if the task is the last one in a pipeline
           if (c.destVersioned !== undefined) {
-            util.addVersionedFilesMap({
-              hash: c.hash,
-              originalPath: c.dest,
-              versionedPath: c.destVersioned
-            }, options);
+            repository.addFileToUploadQueue(c.destVersioned, options);
           }
 
           configs[c.task].files.push(f);
           return configs;
         }, {});
 
-        // Run the reduced configs respecting the order of the pipeline
+        // Run all pipelined proxy tasks - only for files that were *not* downloaded
         tasks.forEach(function(task) {
           if (configs[task] === undefined) {
             return;
           }
           util.runProxyTask(task, grunt.config(task.replace(':', '.')), configs[task].files);
         });
-
-        // TODO: Upload created files
-        // TODO: Run versioned files task
-        // TODO: Run upload assets task
 
         done();
       });
@@ -148,14 +150,6 @@ module.exports = function(grunt) {
         if (nextTask !== undefined) {
           processTask(nextTask);
         } else {
-          if (util.hasVersionedFilesMapBeenUpdated() === true) {
-            grunt.task.run('_magpie_save_versioned_assets_path');
-          }
-
-          if (repository.hasUploadAccess()) {
-            grunt.task.run('_magpie_upload_assets');
-          }
-
           // Finish up the grunt async promise
           done();
         }

@@ -59,10 +59,26 @@ exports.magpie = {
   },
 
   pipeline: function(test) {
-    test.expect(2);
+    test.expect(5);
 
     test.ok( ! grunt.file.exists('tmp/pipeline_a_b_uglify.js'), 'should not create a non-versioned file.');
-    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.b043221e.js'), 'should create a versioned file');
+    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.b043221e.js'), 'should create a versioned file.');
+    test.ok(grunt.file.exists('tmp/pipeline_versioned_files.json'), 'should create `pipeline_versioned_files.json`.');
+    test.equal(grunt.file.read('tmp/pipeline_versioned_files.json'), grunt.file.read('test/expected/pipeline_versioned_files.json'), 'should contain JSON of versioned files.');
+    test.ok(mocks.repositoryHasFileUpload('pipeline_a_b_uglify.b043221e.js'), 'should upload file to repository');
+
+    test.done();
+  },
+
+  pipeline_found_download: function(test) {
+    test.expect(6);
+
+    test.ok( ! grunt.file.exists('tmp/pipeline_a_c_uglify.js'), 'should not create a non-versioned file.');
+    test.ok( ! grunt.file.exists('tmp/pipeline_a_c.js'), 'should not create any intermediate files.');
+    test.ok(grunt.file.exists('tmp/pipeline_a_c_uglify.3bafa719.js'), 'should create a versioned file.');
+    test.equal(grunt.file.read('tmp/pipeline_a_c_uglify.3bafa719.js'), grunt.file.read('test/expected/pipeline_a_c_uglify_downloaded.js'), 'should have expected content.');
+    test.ok(grunt.file.exists('tmp/pipeline_downloaded_versioned_files.json'), 'should create `pipeline_downloaded_versioned_files.json`.');
+    test.equal(grunt.file.read('tmp/pipeline_downloaded_versioned_files.json'), grunt.file.read('test/expected/pipeline_downloaded_versioned_files.json'), 'should contain JSON of versioned files.');
 
     test.done();
   }
