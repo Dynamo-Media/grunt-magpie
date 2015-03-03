@@ -10,6 +10,7 @@
 
 var _ = require('underscore');
 var util = require('../lib/util');
+var when = require('when');
 var repository = require('../lib/repository');
 
 
@@ -83,20 +84,52 @@ module.exports = function(grunt) {
 
       var pipelines = util.extractPipelines(tasksByParent);
 
-      grunt.log.writeln('pipelines', pipelines);
+      // Check existence/attempt to download the `dest` files
+      var promises = _.map(pipelines, function(pipeline) {
+        var lastTask = _.last(pipeline);
+        return util.downloadFile(lastTask.destVersioned, pipeline, options);
+      });
 
-      var ignoredFiles = util.collectPipelineIgnoredFilesByTask(pipelines);
+      // Wait for all of the download tasks to finish up
+      when.settle(promises).then(function(descriptors) {
+        var filesNotInRepository = util.getRejectedReasonFromDescriptors(descriptors);
 
-      grunt.log.writeln('ignoredFiles', ignoredFiles);
+        // Run all pipelined proxy tasks - only for files that were *not* downloaded
+        var flattenedPipelines = _.flatten(_.pluck(filesNotInRepository, 'context'));
 
-      // TODO: Check existence/attempt to download the `dest` files
-      var promises =
+        // Iterate over each pipeline and reduce files for each task
+        var configs = _.reduce(flattenedPipelines, function(configs, c) {
+          if (configs[c.task] === undefined) configs[c.task] = { files: [] };
 
-      // TODO: Run all pipelined proxy tasks - only for files that were *not* downloaded
+          // Create task files and override dest for versioned files
+          var f = { src: c.src, dest: c.destVersioned || c.dest };
 
-      // TODO: Save the versioned files map and upload assets
+          // Check if the task is the last one in a pipeline and add its dest
+          // file to the versioned files
+          if (c.destVersioned !== undefined) {
+            util.addVersionedFilesMap({
+              hash: c.hash,
+              originalPath: c.dest,
+              versionedPath: c.destVersioned
+            }, options);
+          }
 
-      done();
+          configs[c.task].files.push(f);
+          return configs;
+        }, {});
+
+        // Run the reduced configs respecting the order of the pipeline
+        tasks.forEach(function(task) {
+          if (configs[task] === undefined) return;
+          util.runProxyTask(task, grunt.config(task.replace(':', '.')), configs[task].files);
+        });
+
+        // TODO: Upload created files
+        // TODO: Run versioned files task
+        // TODO: Run upload assets task
+
+        done();
+      });
 
       return true;
     }
@@ -149,6 +182,9 @@ module.exports = function(grunt) {
     options.files.forEach(function(file) {
       var hash = util.hashFiles(file);
       var versionedFile = util.addVersionToPath(file, hash);
+      if (grunt.file.exists(versionedFile)) {
+        grunt.file.delete(versionedFile);
+      }
       grunt.file.copy(file, versionedFile, {encoding: null});
       grunt.file.delete(file);
       util.addVersionedFilesMap({

@@ -62,7 +62,7 @@ exports.magpie = {
     test.expect(2);
 
     test.ok( ! grunt.file.exists('tmp/pipeline_a_b_uglify.js'), 'should not create a non-versioned file.');
-    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.HASH.js'), 'should create a versioned file');
+    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.b043221e.js'), 'should create a versioned file');
 
     test.done();
   }
