@@ -59,13 +59,18 @@ exports.magpie = {
   },
 
   pipeline: function(test) {
-    test.expect(5);
+    test.expect(8);
 
-    test.ok( ! grunt.file.exists('tmp/pipeline_a_b_uglify.js'), 'should not create a non-versioned file.');
-    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.b043221e.js'), 'should create a versioned file.');
+    test.ok( ! grunt.file.exists('tmp/pipeline_a_b_uglify.js'), 'should not create a `pipeline_a_b_uglify.js` non-versioned file.');
+    test.ok(grunt.file.exists('tmp/pipeline_a_b_uglify.b043221e.js'), 'should create a `pipeline_a_b_uglify.js` versioned file.');
+    test.ok(mocks.repositoryHasFileUpload('pipeline_a_b_uglify.b043221e.js'), 'should upload versioned `pipeline_a_b_uglify.js` file to repository');
+
+    test.ok( ! grunt.file.exists('tmp/pipeline_b_c_uglify.js'), 'should not create a `pipeline_b_c_uglify.js` non-versioned file.');
+    test.ok(grunt.file.exists('tmp/pipeline_b_c_uglify.27b4401e.js'), 'should create a `pipeline_b_c_uglify.js` versioned file.');
+    test.ok(mocks.repositoryHasFileUpload('pipeline_b_c_uglify.27b4401e.js'), 'should upload versioned `pipeline_a_c_uglify.js` file to repository');
+
     test.ok(grunt.file.exists('tmp/pipeline_versioned_files.json'), 'should create `pipeline_versioned_files.json`.');
     test.equal(grunt.file.read('tmp/pipeline_versioned_files.json'), grunt.file.read('test/expected/pipeline_versioned_files.json'), 'should contain JSON of versioned files.');
-    test.ok(mocks.repositoryHasFileUpload('pipeline_a_b_uglify.b043221e.js'), 'should upload file to repository');
 
     test.done();
   },
