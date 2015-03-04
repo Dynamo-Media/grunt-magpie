@@ -1,7 +1,7 @@
 {
   "name": "grunt-magpie",
   "description": "Version and save assets in a remote repository.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/dynamo-media/grunt-magpie",
   "author": {
     "name": "justnom"

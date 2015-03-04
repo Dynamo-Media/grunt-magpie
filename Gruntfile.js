@@ -8,6 +8,8 @@
 
 'use strict';
 
+var path = require('path');
+
 
 module.exports = function(grunt) {
 
@@ -33,7 +35,8 @@ module.exports = function(grunt) {
     concat: {
       default_not_found_upload: {
         src: ['test/fixtures/hello', 'test/fixtures/testing'],
-        dest: 'tmp/default_not_found_upload.txt'
+        // Absolute path given to test the path normalization
+        dest: path.join(process.cwd(), 'tmp/default_not_found_upload.txt')
       },
       default_found_download: {
         src: ['test/fixtures/hello', 'test/fixtures/download_me'],
