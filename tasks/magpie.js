@@ -104,7 +104,7 @@ module.exports = function(grunt) {
       });
 
       // Wait for all of the download tasks to finish up
-      when.settle(promises).then(function(descriptors) {
+      when.settle(promises).done(function(descriptors) {
         var filesNotInRepository = util.getRejectedReasonFromDescriptors(descriptors);
         filesNotInRepository = _.flatten(_.pluck(filesNotInRepository, 'context'));
 
@@ -209,11 +209,22 @@ module.exports = function(grunt) {
    */
   grunt.registerTask('_magpie_upload_assets', 'Upload versioned assets to the remote server', function() {
     var done = this.async();
-    repository.uploadQueuedFiles().done(function(promises) {
-      grunt.log.ok('Uploaded ' + promises.length + ' files to repository');
-      done();
-    }, function(error) {
-      grunt.fail.warn('Upload failed: "' + error + '"');
+    repository.uploadQueuedFiles().done(function(descriptors) {
+      var uploadedFiles = util.getFulfilledValueFromDescriptors(descriptors);
+      var failedFiles = util.getRejectedReasonFromDescriptors(descriptors);
+
+      if (uploadedFiles.length > 0) {
+        grunt.log.ok('Uploaded ' + uploadedFiles.length + ' files to repository');
+      }
+
+      if (failedFiles.length > 0) {
+        grunt.log.error('Failed uploading ' + failedFiles.length + ' files to repository');
+        failedFiles.forEach(function(f) {
+          grunt.log.error('File: "' + f.file + '". Error: ' + f.err);
+        });
+        grunt.fail.warn('Exiting...');
+      }
+
       done();
     });
   });

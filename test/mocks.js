@@ -42,9 +42,19 @@ function _repositoryDownloadFile(filePath) {
 var _repositoryFileUploads = [];
 
 function _repositoryUploadFile(file) {
-    if (grunt.file.exists(file)) {
-        _repositoryFileUploads.push(path.basename(file));
-    }
+    return when.promise(function(resolve, reject) {
+        if (grunt.file.exists(file)) {
+            _repositoryFileUploads.push(path.basename(file));
+            return resolve({
+                file: file
+            });
+        }
+
+        reject({
+            file: file,
+            err: 'File not found'
+        });
+    });
 }
 
 exports.repositoryHasFileUpload = function(file) {
