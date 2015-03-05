@@ -2,6 +2,8 @@
 
 > Version and save assets in a remote repository.
 
+[![NPM](https://nodei.co/npm/grunt-magpie.png)](https://nodei.co/npm/grunt-magpie/)
+
 ## Getting Started
 This plugin requires Grunt `~0.4.5`
 
