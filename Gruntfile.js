@@ -53,6 +53,10 @@ module.exports = function(grunt) {
       pipeline_download: {
         src: ['test/fixtures/pipeline_a.js', 'test/fixtures/pipeline_c.js'],
         dest: 'tmp/pipeline_a_c.js'
+      },
+      do_not_version: {
+        src: ['test/fixtures/testing', 'test/fixtures/hello'],
+        dest: 'tmp/do_not_version.txt'
       }
     },
 
@@ -108,6 +112,12 @@ module.exports = function(grunt) {
           versionedFilesMapPath: 'tmp/pipeline_downloaded_versioned_files.json',
           pipeline: true,
           tasks: ['concat:pipeline_download', 'uglify:pipeline_download']
+        }
+      },
+      do_not_version: {
+        options: {
+          doNotVersion: true,
+          tasks: ['concat:do_not_version']
         }
       }
     },

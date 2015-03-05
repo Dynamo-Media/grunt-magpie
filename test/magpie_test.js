@@ -86,5 +86,13 @@ exports.magpie = {
     test.equal(grunt.file.read('tmp/pipeline_downloaded_versioned_files.json'), grunt.file.read('test/expected/pipeline_downloaded_versioned_files.json'), 'should contain JSON of versioned files.');
 
     test.done();
+  },
+
+  do_not_version: function(test) {
+    test.expect(1);
+
+    test.ok(grunt.file.exists('tmp/do_not_version.txt'), 'should create a non-versioned destination file.');
+
+    test.done();
   }
 };

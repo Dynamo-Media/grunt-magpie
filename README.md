@@ -52,6 +52,12 @@ Default value: false
 
 An array of tasks to download destination files from the repository (if possible), version and upload to the repository. The tasks are run in the order they are given in.
 
+### options.doNotVersion
+Type: `Boolean`
+Default value: false
+
+Do not add a version hash onto the files, but still version them in the repository so that they can be downloaded.
+
 #### options.versionAfterBuild
 Type: `Boolean`
 Default value: `false`

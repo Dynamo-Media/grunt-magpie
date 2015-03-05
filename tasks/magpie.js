@@ -21,6 +21,7 @@ module.exports = function(grunt) {
   grunt.registerMultiTask('magpie', 'Version and save assets in a remote repository.', function() {
     var options = this.options({
       serverUrl: 'http://127.0.0.1:8888',
+      doNotVersion: false,
       versionAfterBuild: false,
       versionedFilesMapPath: 'versioned_files.json',
       versionedFilesMapTemplate: null,
@@ -43,7 +44,11 @@ module.exports = function(grunt) {
      */
     if (options.versionAfterBuild) {
       if (options.pipeline) {
-        grunt.fail.fatal('The `versionAfterBuild` setting is *not* compatible with the *pipeline* setting');
+        grunt.fail.fatal('The `versionAfterBuild` setting is *not* compatible with the `pipeline` setting');
+      }
+
+      if (options.doNotVersion) {
+        grunt.fail.fatal('The `doNotVersion` setting is *not* compatible with the `versionAfterBuild` setting');
       }
 
       var destFiles = _.map(tasks, function(task) {
@@ -66,6 +71,10 @@ module.exports = function(grunt) {
       return true;
     }
 
+    /**
+     * Mark the task as asynchronous and create the done handler function which
+     * queues the assets map to be saved and uploads the assets, if possible.
+     */
     var asyncDone = this.async();
     var done = function() {
       // Create a versioned files map file
@@ -89,6 +98,10 @@ module.exports = function(grunt) {
         grunt.fail.fatal('Cannot have a pipeline of one task');
       }
 
+      if (options.doNotVersion) {
+        grunt.fail.fatal('The `doNotVersion` setting is *not* compatible with the `pipeline` setting');
+      }
+
       var tasksByParent = util.groupTasks(tasks);
 
       if (tasksByParent._order.length === 1) {
@@ -100,7 +113,12 @@ module.exports = function(grunt) {
       // Check existence/attempt to download the `dest` files
       var promises = _.map(pipelines, function(pipeline) {
         var lastTask = _.last(pipeline);
-        return util.downloadFile(lastTask.destVersioned, pipeline, options);
+        return util.downloadFile(
+            path.basename(lastTask.destVersioned),
+            lastTask.destVersioned,
+            pipeline,
+            options
+        );
       });
 
       // Wait for all of the download tasks to finish up
@@ -180,11 +198,14 @@ module.exports = function(grunt) {
     options.files.forEach(function(file) {
       var hash = util.hashFiles(file);
       var versionedFile = util.addVersionToPath(file, hash);
+
       if (grunt.file.exists(versionedFile)) {
         grunt.file.delete(versionedFile);
       }
+
       grunt.file.copy(file, versionedFile, {encoding: null});
       grunt.file.delete(file);
+
       util.addVersionedFilesMap({
         hash: hash,
         originalPath: file,
